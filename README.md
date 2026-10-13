@@ -1,6 +1,7 @@
 # mdlinkcheck
 
 [![CI](https://github.com/mikeua/mdlinkcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeua/mdlinkcheck/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/mdlinkcheck.svg)](https://pypi.org/project/mdlinkcheck/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)
 
@@ -34,9 +35,9 @@ pre-commit hook and deterministic enough for CI.
 ## Install
 
 ```sh
-pipx install git+https://github.com/mikeua/mdlinkcheck
+pipx install mdlinkcheck
 # or
-pip install git+https://github.com/mikeua/mdlinkcheck
+pip install mdlinkcheck
 ```
 
 Python 3.9 or newer; no third-party dependencies.
