@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mdlinkcheck"
+dynamic = ["version"]
+description = "Find broken relative links and #anchors in Markdown, offline, using GitHub's heading-anchor rules"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "mikeua" }]
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["markdown", "links", "anchors", "documentation", "linter", "github-actions"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+[project.urls]
+Homepage = "https://github.com/mikeua/mdlinkcheck"
+Issues = "https://github.com/mikeua/mdlinkcheck/issues"
+
+[project.scripts]
+mdlinkcheck = "mdlinkcheck.cli:main"
+
+[tool.hatch.version]
+path = "src/mdlinkcheck/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mdlinkcheck"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
