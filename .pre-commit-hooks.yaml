@@ -1,0 +1,7 @@
+- id: mdlinkcheck
+  name: mdlinkcheck
+  description: Find broken relative links and #anchors in Markdown files
+  entry: mdlinkcheck
+  language: python
+  types_or: [markdown, mdx]
+  pass_filenames: false

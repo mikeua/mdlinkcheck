@@ -1,0 +1,29 @@
+name: mdlinkcheck
+description: Find broken relative links and #anchors in Markdown files, using GitHub's heading-anchor rules
+author: mikeua
+branding:
+  icon: link
+  color: blue
+
+inputs:
+  args:
+    description: Arguments passed to mdlinkcheck (paths and options)
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Install mdlinkcheck
+      shell: bash
+      run: |
+        python3 -m venv "$RUNNER_TEMP/mdlinkcheck-venv"
+        "$RUNNER_TEMP/mdlinkcheck-venv/bin/python" -m pip install --quiet --disable-pip-version-check "$GITHUB_ACTION_PATH"
+    - name: Check links
+      shell: bash
+      env:
+        MDLINKCHECK_ARGS: ${{ inputs.args }}
+      run: |
+        # Word-split the arguments on purpose; inputs are not passed through eval.
+        # shellcheck disable=SC2086
+        "$RUNNER_TEMP/mdlinkcheck-venv/bin/mdlinkcheck" $MDLINKCHECK_ARGS
