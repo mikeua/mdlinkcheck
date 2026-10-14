@@ -164,3 +164,28 @@ def test_case_mismatch(tmp_path):
     write(tmp_path, {"a.md": "[x](docs/Guide.md)\n", "docs/guide.md": "# Guide\n"})
     expected = "case-mismatch" if _case_insensitive_fs(tmp_path) else "missing-file"
     assert run(tmp_path) == [("a.md", 1, expected)]
+
+
+def test_detects_docs_sites(tmp_path):
+    write(
+        tmp_path,
+        {
+            "site/docusaurus.config.ts": "export default {}\n",
+            "site/docs/guide/index.md": "# Guide\n[intro](intro) [setup](guide/setup#install) [bad](nope)\n",
+            "site/docs/guide/intro.md": "# Intro\n",
+            "site/docs/guide/setup.mdx": "# Setup\n## Install\n[home](/guide/intro) [img](/img/logo.png)\n",
+            "site/static/img/logo.png": "",
+            "vocs/vocs.config.ts": "export default defineConfig({ rootDir: 'content' })\n",
+            "vocs/content/pages/index.mdx": "[a](/api/eth) [b](/api/missing)\n",
+            "vocs/content/pages/api/eth.md": "# eth\n",
+        },
+    )
+    from mdlinkcheck.sites import detect_site_roots
+
+    roots = detect_site_roots(tmp_path)
+    assert (tmp_path / "site/docs").resolve() in roots
+    assert (tmp_path / "vocs/content/pages").resolve() in roots
+    assert run(tmp_path, site_roots=tuple(roots)) == [
+        ("site/docs/guide/index.md", 2, "missing-file"),
+        ("vocs/content/pages/index.mdx", 1, "missing-file"),
+    ]

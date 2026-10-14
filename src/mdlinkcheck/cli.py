@@ -11,6 +11,7 @@ from typing import TextIO
 
 from . import __version__
 from .checker import Checker, Options, Problem
+from .sites import detect_site_roots
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,8 +47,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         type=Path,
         metavar="DIR",
-        help="pages directory of a docs site (Docusaurus, VitePress, Vocs, ...): '/route' links resolve against it and "
-        "links inside it may omit '.md' (repeatable)",
+        help="pages directory of a docs site: '/route' links resolve against it and links inside it may omit '.md' "
+        "(repeatable; replaces auto-detection)",
+    )
+    p.add_argument(
+        "--no-detect-sites",
+        action="store_true",
+        help="don't look for Docusaurus, VitePress, Vocs or MkDocs configs to find site roots automatically",
     )
     p.add_argument("--no-git", action="store_true", help="walk directories directly instead of using 'git ls-files'")
     p.add_argument(
@@ -129,13 +135,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"mdlinkcheck: {path}: no such file or directory", file=sys.stderr)
             return 2
 
+    root = args.root or _default_root()
+    site_roots = list(args.site_root)
+    if not site_roots and not args.no_detect_sites:
+        site_roots = detect_site_roots(root)
+
     options = Options(
-        root=args.root or _default_root(),
+        root=root,
         excludes=tuple(args.exclude),
         ignore=ignore,
         check_absolute=not args.no_absolute,
         use_git=not args.no_git,
-        site_roots=tuple(args.site_root),
+        site_roots=tuple(site_roots),
     )
     checker = Checker(options)
     files = checker.collect(args.paths)
@@ -148,9 +159,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.quiet and fmt != "json":
         links = sum(len(checker.document(f).links) for f in files)
         status = f"{len(problems)} broken" if problems else "no broken links"
+        if site_roots and not args.site_root:
+            detected = ", ".join(_display(p) for p in site_roots)
+            print(f"mdlinkcheck: docs site roots (auto-detected): {detected}", file=sys.stderr)
         print(f"mdlinkcheck: {len(files)} files, {links} links, {status}", file=sys.stderr)
         absolute = sum(1 for p in problems if p.rule == "missing-file" and p.target.startswith("/"))
-        if absolute >= 5 and not args.site_root:
+        if absolute >= 5 and not site_roots:
             print(
                 f"mdlinkcheck: {absolute} of these are '/...' links; if they are docs-site routes, "
                 "pass --site-root <pages dir> or --no-absolute",
