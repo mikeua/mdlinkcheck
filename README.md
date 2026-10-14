@@ -55,12 +55,20 @@ It exits with `1` if any link is broken, `0` otherwise, and `2` on usage errors.
 |---|---|
 | `-e, --exclude GLOB` | Skip files matching `GLOB` (repeatable), e.g. `-e 'vendor/*' -e CHANGELOG.md`. |
 | `-i, --ignore REGEX` | Don't check link targets matching `REGEX` (repeatable), e.g. `-i '^generated/'`. |
-| `-s, --site-root DIR` | Pages directory of a docs site (Docusaurus, VitePress, Vocs, ...). `/route` links resolve against it, and links inside it may leave out `.md`. Repeatable, e.g. for a `public/` assets folder. |
+| `-s, --site-root DIR` | Pages directory of a docs site. `/route` links resolve against it, and links inside it may leave out `.md`. Repeatable, e.g. for a `public/` assets folder. Replaces auto-detection. |
+| `--no-detect-sites` | Don't auto-detect docs sites (see below). |
 | `--no-absolute` | Don't check links that start with `/`. |
 | `--root DIR` | Directory that `/` links are relative to (default: the git top level). |
 | `--no-git` | Walk directories directly instead of using `git ls-files` (which skips ignored files). |
 | `-f, --format` | `text`, `github` (workflow annotations; the default inside GitHub Actions) or `json`. |
 | `-q, --quiet` | Don't print the summary line. |
+
+### Docs sites
+
+Docs generators serve pages by route, so their links often leave out `.md` or start with `/`. mdlinkcheck looks for
+`docusaurus.config.*`, `vocs.config.*`, `.vitepress/` and `mkdocs.yml` and resolves links inside those sites the way the
+site will: against the pages folder and static assets folder, with or without the extension, and from the parent
+folder for `index` pages. The detected folders are printed in the summary; pass `--site-root` to set them yourself.
 
 To skip a single link, put `<!-- mdlinkcheck-ignore -->` on the same line or on the line above it.
 
@@ -68,7 +76,7 @@ To skip a single link, put `<!-- mdlinkcheck-ignore -->` on the same line or on 
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: mikeua/mdlinkcheck@v0.1.0
+- uses: mikeua/mdlinkcheck@v0.2.0
   with:
     args: --exclude CHANGELOG.md .
 ```
@@ -80,7 +88,7 @@ Broken links show up as annotations on the pull request diff.
 ```yaml
 repos:
   - repo: https://github.com/mikeua/mdlinkcheck
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: mdlinkcheck
 ```

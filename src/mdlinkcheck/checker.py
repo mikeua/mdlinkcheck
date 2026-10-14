@@ -148,7 +148,10 @@ class Checker:
         else:
             dest = source.parent / path_part
             if not dest.exists() and self._in_site(source):
-                dest = self._resolve_page(dest) or dest
+                # An index page is served at its folder's URL without a trailing slash
+                # (/guide/index.md -> /guide), so its relative links resolve from the parent folder.
+                via_url = source.parent.parent / path_part if source.stem.lower() in ("index", "readme") else None
+                dest = self._resolve_page(dest) or (via_url and self._resolve_page(via_url)) or dest
 
         if path_part:
             if not dest.exists():
