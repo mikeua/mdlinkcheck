@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 (2026-10-15)
+
+- Resolve links to archived Docusaurus doc versions (`/v3.4/guide` → `versioned_docs/version-v3.4/guide`), using the
+  site's `versions.json`.
+
 ## 0.2.0 (2026-10-14)
 
 - Auto-detect Docusaurus, Vocs, VitePress and MkDocs sites, so route-style links (`/guide/intro`, `./intro`) resolve

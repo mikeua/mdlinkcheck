@@ -189,3 +189,28 @@ def test_detects_docs_sites(tmp_path):
         ("site/docs/guide/index.md", 2, "missing-file"),
         ("vocs/content/pages/index.mdx", 1, "missing-file"),
     ]
+
+
+def test_docusaurus_versioned_docs(tmp_path):
+    write(
+        tmp_path,
+        {
+            "site/docusaurus.config.ts": "export default {}\n",
+            "site/versions.json": '["v1.0"]\n',
+            "site/docs/intro.md": "# Intro\n## Setup\n"
+            "[old](/v1.0/intro#setup) [old2](/docs/v1.0/intro) [bad](/v1.0/nope)\n",
+            "site/versioned_docs/version-v1.0/intro.md": "# Intro\n## Setup\n",
+        },
+    )
+    from mdlinkcheck.sites import detect_site_roots, detect_site_routes
+
+    checker = Checker(
+        Options(
+            root=tmp_path,
+            use_git=False,
+            site_roots=tuple(detect_site_roots(tmp_path)),
+            site_routes=tuple(detect_site_routes(tmp_path)),
+        )
+    )
+    problems = checker.check(checker.collect([tmp_path]))
+    assert [(p.line, p.target, p.rule) for p in problems] == [(3, "/v1.0/nope", "missing-file")]

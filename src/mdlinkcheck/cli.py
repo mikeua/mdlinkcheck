@@ -11,7 +11,7 @@ from typing import TextIO
 
 from . import __version__
 from .checker import Checker, Options, Problem
-from .sites import detect_site_roots
+from .sites import detect_site_roots, detect_site_routes
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -137,8 +137,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     root = args.root or _default_root()
     site_roots = list(args.site_root)
+    site_routes: list[tuple[str, Path]] = []
     if not site_roots and not args.no_detect_sites:
         site_roots = detect_site_roots(root)
+        site_routes = detect_site_routes(root)
 
     options = Options(
         root=root,
@@ -147,6 +149,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         check_absolute=not args.no_absolute,
         use_git=not args.no_git,
         site_roots=tuple(site_roots),
+        site_routes=tuple(site_routes),
     )
     checker = Checker(options)
     files = checker.collect(args.paths)

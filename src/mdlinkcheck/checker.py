@@ -47,6 +47,9 @@ class Options:
     #: Directories served by a docs site (Docusaurus, VitePress, Vocs, MkDocs...).
     #: Links inside them, and '/...' links, may omit the extension or point at a folder's index page.
     site_roots: tuple[Path, ...] = ()
+    #: Route prefixes served from a specific folder, e.g. ("v3.4", versioned_docs/version-v3.4) for an
+    #: archived Docusaurus version: "/v3.4/guide" is the page at versioned_docs/version-v3.4/guide.
+    site_routes: tuple[tuple[str, Path], ...] = ()
 
 
 class Checker:
@@ -142,7 +145,13 @@ class Checker:
         elif path_part.startswith("/"):
             if not self.options.check_absolute:
                 return None
-            candidates = [site / path_part.lstrip("/") for site in self._site_roots]
+            route = path_part.strip("/")
+            candidates = [
+                folder / route[len(prefix) :].lstrip("/")
+                for prefix, folder in self.options.site_routes
+                if route == prefix or route.startswith(prefix + "/")
+            ]
+            candidates += [site / path_part.lstrip("/") for site in self._site_roots]
             candidates.append(self.root / path_part.lstrip("/"))
             dest = next((p for p in map(self._resolve_page, candidates) if p), candidates[-1])
         else:
