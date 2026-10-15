@@ -7,6 +7,7 @@ mdlinkcheck resolve those links without ``--site-root``.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -56,6 +57,25 @@ def _vitepress(config_dir: Path) -> list[Path]:
 def _mkdocs(config: Path) -> list[Path]:
     m = re.search(r"^docs_dir\s*:\s*['\"]?([^'\"\n#]+?)['\"]?\s*(?:#.*)?$", _read(config), re.M)
     return [config.parent / (m.group(1) if m else "docs")]
+
+
+def detect_site_routes(root: Path) -> list[tuple[str, Path]]:
+    """Map the route prefix of each archived Docusaurus docs version to the folder that holds it."""
+    routes: list[tuple[str, Path]] = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in DEFAULT_EXCLUDES and not d.startswith(".")]
+        if "versions.json" not in filenames or not any(n in filenames for n in _DOCUSAURUS):
+            continue
+        try:
+            versions = json.loads((Path(dirpath) / "versions.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for version in versions if isinstance(versions, list) else []:
+            folder = Path(dirpath) / "versioned_docs" / f"version-{version}"
+            if isinstance(version, str) and folder.is_dir():
+                # With routeBasePath "/" a version is served at /<version>/..., otherwise at /docs/<version>/...
+                routes += [(version, folder.resolve()), (f"docs/{version}", folder.resolve())]
+    return routes
 
 
 def detect_site_roots(root: Path) -> list[Path]:
